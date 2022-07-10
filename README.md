@@ -14,6 +14,118 @@ use Spatie\Sitemap\SitemapGenerator;
 SitemapGenerator::create('https://example.com')->writeToFile($path);
 ```
 
+Added custom features to configuration
+    
+```php
+/*
+ * The sitemap generator can use a Redis client to cache the sitemap.
+ * This is useful if you have a high-traffic site.
+ */
+'cache_enabled' => false,
+
+/*
+ * This sitemap deletes duplicate urls.
+ */
+'delete_duplicates' => true,
+
+/*
+ * Add a trailing slash to all the urls.
+ */
+'add_trailing_slash' => true,
+
+/*
+ * Delete urls with http://
+ */
+'delete_http' => true,
+
+/*
+ * URLs to omit from the sitemap.
+ */
+'omit_urls' =>
+['vip.josephalai.com']
+```
+
+Controller to display the sitemap: (by Joseph Alai)
+```php
+namespace App\Http\Controllers;
+
+use Spatie\Sitemap\SitemapGenerator;
+use Redis;
+class SitemapController extends Controller
+{
+    /**
+     * @var string The Redis key for the sitemap XML.
+     */
+    const XML_SITEMAP_REDISKEY = 'xml-sitemap';
+    /**
+     * @var string HTTPS_VIP_JOSEPHALAI_COM_SITEMAP is the URL of the site to be site-mapped.
+     */
+    const SITEMAP_CRAWL_URL = 'https://vip.josephalai.com/';
+    /**
+     * @var string FILENAME_SITEMAP_XML is the name of the file that will be generated or retrieved.
+     */
+    const FILENAME_SITEMAP_XML = 'sitemap.xml';
+
+    public function __construct()
+    {
+        $this->middleware('guest');
+    }
+
+    /**
+     * display the sitemap.xml file to the user or generate a new one if it doesn't exist.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function view()
+    {
+        return response($this->generate(), 200)->header('Content-Type', 'xml');
+    }
+
+    /**
+     * sitemap checks if the sitemap is in Redis, if not, it generates it and stores it in Redis.
+     * returns the sitemap.
+     *
+     * @return string
+     */
+    protected function generate() : string
+    {
+        if (config('sitemap.cache_enabled')) {
+            // attempt to get the sitemap from Redis
+            return $this->getCachedSitemap();
+        }
+
+        return $this->renderSitemap();
+    }
+
+    /**
+     * @return string
+     */
+    protected function getCachedSitemap(): string
+    {
+        if (!Redis::exists(self::XML_SITEMAP_REDISKEY)) {
+
+            // if it doesn't exist, generate it and store it in Redis
+            Redis::setEx(self::XML_SITEMAP_REDISKEY, 3600 * 12, $this->renderSitemap());
+        }
+
+        return Redis::get(self::XML_SITEMAP_REDISKEY);
+    }
+
+    /**
+     * @return string
+     */
+    protected function renderSitemap(): string
+    {
+        $sitemap = SitemapGenerator::create(self::SITEMAP_CRAWL_URL)->getSitemap();
+        $sitemap->setDeleteHttp(config('sitemap.delete_http'));
+        $sitemap->setDeleteDuplicates(config('sitemap.delete_duplicates'));
+        $sitemap->omitUrls(config('sitemap.omit_urls'));
+        $sitemap->addTrailingSlash(config('sitemap.add_trailing_slash'));
+        return $sitemap->render();
+    }
+} 
+```
+
 You can also create your sitemap manually:
 
 ```php

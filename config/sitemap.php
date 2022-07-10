@@ -81,6 +81,4 @@ return [
     'omit_urls' =>
         ['vip.josephalai.com']
 
-
-
 ];
