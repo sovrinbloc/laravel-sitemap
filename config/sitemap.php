@@ -54,4 +54,10 @@ return [
      */
     'crawl_profile' => Profile::class,
 
+    /*
+     * The sitemap generator can use a Redis client to cache the sitemap.
+     * This is useful if you have a high-traffic site.
+     */
+    'cache_enabled' => true,
+
 ];
