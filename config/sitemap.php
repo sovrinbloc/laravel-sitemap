@@ -74,4 +74,13 @@ return [
      * Delete urls with http://
      */
     'delete_http' => true,
+
+    /*
+     * URLs to omit from the sitemap.
+     */
+    'omit_urls' =>
+        ['vip.josephalai.com']
+
+
+
 ];

@@ -9,6 +9,7 @@ use Spatie\Crawler\Crawler;
 use Spatie\Sitemap\Tags\Tag;
 use Spatie\Sitemap\Tags\Url;
 
+const FORWARD_SLASH = '/';
 class Sitemap implements Responsable
 {
     /** @var bool */
@@ -54,7 +55,7 @@ class Sitemap implements Responsable
             $tag = Url::create($tag);
         }
 
-        if (! in_array($tag, $this->tags)) {
+        if (!in_array($tag, $this->tags)) {
             $this->tags[] = $tag;
         }
 
@@ -75,7 +76,34 @@ class Sitemap implements Responsable
 
     public function hasUrl(string $url): bool
     {
-        return (bool) $this->getUrl($url);
+        return (bool)$this->getUrl($url);
+    }
+
+    public function omitUrls(array $urls): self
+    {
+        $this->tags = collect($this->tags)->reject(function (Tag $tag) use ($urls) {
+            if (!$tag->getType() === 'url') {
+                return false;
+            }
+            // remove https from url
+            $urlWithoutHttp = str_replace('https://', '', $tag->url);
+            $urlWithoutHttp = str_replace('http://', '', $urlWithoutHttp);
+            if ($this->addTrailingSlash) {
+                $urlWithoutHttp = rtrim($urlWithoutHttp, FORWARD_SLASH) . FORWARD_SLASH;
+                // add trailing slash to urls that don't have one
+                foreach ($urls as $key => $url) {
+                    $urls[$key] = rtrim($url, FORWARD_SLASH) . FORWARD_SLASH;
+                }
+            } else {
+                $urlWithoutHttp = rtrim($urlWithoutHttp, FORWARD_SLASH);
+                foreach ($urls as $key => $url) {
+                    $urls[$key] = rtrim($url, FORWARD_SLASH);
+                }
+            }
+            return in_array($urlWithoutHttp, $urls);
+        })->toArray();
+
+        return $this;
     }
 
     public function render(): string
@@ -125,7 +153,7 @@ class Sitemap implements Responsable
     /**
      * Create an HTTP response that represents the object.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function toResponse($request)
