@@ -58,6 +58,20 @@ return [
      * The sitemap generator can use a Redis client to cache the sitemap.
      * This is useful if you have a high-traffic site.
      */
-    'cache_enabled' => true,
+    'cache_enabled' => false,
 
+    /*
+     * This sitemap deletes duplicate urls.
+     */
+    'delete_duplicates' => true,
+
+    /*
+     * Add a trailing slash to all the urls.
+     */
+    'add_trailing_slash' => true,
+
+    /*
+     * Delete urls with http://
+     */
+    'delete_http' => true,
 ];

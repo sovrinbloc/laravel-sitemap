@@ -5,11 +5,36 @@ namespace Spatie\Sitemap;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Crawler\Crawler;
 use Spatie\Sitemap\Tags\Tag;
 use Spatie\Sitemap\Tags\Url;
 
 class Sitemap implements Responsable
 {
+    /** @var bool */
+    protected $deleteDuplicates;
+
+    /** @var bool */
+    protected $deleteHttp;
+
+    /** @var bool */
+    protected $addTrailingSlash;
+
+    public function setDeleteHttp(bool $enabled)
+    {
+        $this->deleteHttp = $enabled;
+    }
+
+    public function setDeleteDuplicates(bool $enabled)
+    {
+        $this->deleteDuplicates = $enabled;
+    }
+
+    public function addTrailingSlash(bool $enabled)
+    {
+        $this->addTrailingSlash = $enabled;
+    }
+
     /** @var array */
     protected $tags = [];
 
@@ -56,8 +81,27 @@ class Sitemap implements Responsable
     public function render(): string
     {
         sort($this->tags);
-
+        if ($this->deleteDuplicates) {
+            foreach ($this->tags as $key => $tag) {
+                if (!$this->addTrailingSlash) {
+                    $tag->url = rtrim($tag->url, '/');
+                } else {
+                    if (substr($tag->url, -1) !== '/') {
+                        $tag->url .= '/';
+                    }
+                }
+            }
+            $this->tags = array_unique($this->tags, SORT_REGULAR);
+        }
         $tags = collect($this->tags)->unique('url');
+
+        // delete entries with http://
+        $tags = $tags->filter(function (Tag $tag) {
+            if ($this->deleteHttp && strpos($tag->url, 'http:') === 0) {
+                return false;
+            }
+            return true;
+        });
 
         return view('laravel-sitemap::sitemap')
             ->with(compact('tags'))
