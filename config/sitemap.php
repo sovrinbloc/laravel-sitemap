@@ -58,22 +58,22 @@ return [
      * The sitemap generator can use a Redis client to cache the sitemap.
      * This is useful if you have a high-traffic site.
      */
-    'cache_enabled' => false,
+    'cache_enabled' => getenv('SITEMAP_ENABLE_CACHE') ? filter_var(getenv('SITEMAP_ENABLE_CACHE'), FILTER_VALIDATE_BOOL): false,
 
     /*
      * This sitemap deletes duplicate urls.
      */
-    'delete_duplicates' => true,
+    'delete_duplicates' => getenv('SITEMAP_DELETE_DUPLICATES') ? filter_var(getenv('SITEMAP_DELETE_DUPLICATES'), FILTER_VALIDATE_BOOL): false,
 
     /*
      * Add a trailing slash to all the urls.
      */
-    'add_trailing_slash' => true,
+    'add_trailing_slash' => getenv('SITEMAP_ADD_TRAILING_SLASH') ? filter_var(getenv('SITEMAP_ADD_TRAILING_SLASH'), FILTER_VALIDATE_BOOL): false,
 
     /*
      * Delete urls with http://
      */
-    'delete_http' => true,
+    'delete_http' => getenv('SITEMAP_DELETE_HTTP') ? filter_var(getenv('SITEMAP_DELETE_HTTP'), FILTER_VALIDATE_BOOL): false,
 
     /*
      * URLs to omit from the sitemap.
