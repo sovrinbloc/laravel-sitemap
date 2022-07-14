@@ -1,5 +1,9 @@
 # Generate sitemaps with ease
 
+## On `vip.josephalai.com` and `josephalai.com`
+- Install with composer with: `composer install --ignore-platform-reqs`
+- Fix references `chown -R www-data:www-data vip-path` and `chmod -R 775 /var/www/vip.josephalai.com`
+
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/spatie/laravel-sitemap.svg?style=flat-square)](https://packagist.org/packages/spatie/laravel-sitemap)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
 ![Test Status](https://img.shields.io/github/workflow/status/spatie/laravel-sitemap/run-tests?label=tests)
